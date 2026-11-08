@@ -1,0 +1,38 @@
+ESPHome component to handle LovyanGFX esp-idf devices.
+---
+
+**Current status: Alpha (Display init to fix, and touchscreen under PR)**
+
+For now, ESPHome mipi display extensions don't handle i80 (8 bits parallel) protocol.
+
+Made for my own use with a JK BMS modbus, this CAN RS485 panel board is based on a ESP32 S3 (16MB)
+with a display NV3041A. Full ref on the PCB is PanelLan ZX4D30CE08S-V12 but its sold also as
+WT32S3-43H on alibaba. It may be seen with the 4827 suffix (on the box) for the resolution 480x272.
+WT prefix is for Wireless-Tag, visible also on the ESP shield on the PCB.
+
+For sure it allow also bluetooth and wifi and a few external gpios,
+it's sold with 2 sets of connectors, one for CAN/RS485/RS232 and the other to debug.
+
+This component was required because the ESP LovyanGFX library is hard to include in ESPHome.
+
+This allow also to use the integrated touchscreen CST3240 to create custom buttons and to command
+the pwm backlight from ESPHome, to avoid backlight when unused...
+
+Sample yaml is based on JK BMS modbus and show the display components integration to query a few entities.
+
+Links
+-----
+
+Datasheets:
+- https://img03.71360.com/w3/4e1e0o/20240731/32602985e837b5826126e4c7d6cd2b52.pdf
+- https://en.wireless-tag.com/product-item-49.html
+- https://techinfodepot.shoutwiki.com/wiki/PanelLan_SC07
+
+- https://github.com/lovyan03/LovyanGFX
+- https://components.espressif.com/components/espressif/esp_lcd_panel_io_additions/versions/1.0.1~1/readme
+- https://github.com/syssi/esphome-jk-bms
+- https://doc.panel-tag.cn/ESP32-S3/index.html
+- https://github.com/smartpanle/QMSD-ESP32-BSP
+- https://gitee.com/qiming-zhixian/qmsd-esp32-bsp
+- https://admin.osptek.com/uploads/NV_3041_A_Datasheet_V1_2_20221011_686486a221.pdf
+
