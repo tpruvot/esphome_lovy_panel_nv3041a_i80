@@ -158,9 +158,11 @@ public:
         tp = points[0];
         if (tp.size) {
           this->touched = true;
-          ESP_LOGD("CST3240", "touch at %d/%d", tp.x, tp.y);
+          ESP_LOGD("CST3240", "touch at %d/%d %d:%d", tp.x, tp.y, tp.id, tp.size);
           this->update();
           this->touched = false;
+        } else {
+          ESP_LOGD("CST3240", "move at %d/%d %d:%d", tp.x, tp.y, tp.id, tp.size);
         }
       }
     }

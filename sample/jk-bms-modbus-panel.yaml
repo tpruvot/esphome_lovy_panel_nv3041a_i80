@@ -107,8 +107,11 @@ number:
     on_value:
       then:
         - lambda: |-
+            if (id(display_sleep) && x != 0)
+              id(display0).wakeup();
             id(display_sleep) = (x == 0);
-            if (x != 0) id(last_backlight_level) = x;
+            if (x != 0)
+              id(last_backlight_level) = x;
         - output.set_level:
             id: backlight_output
             level: !lambda "return x / 100.0;"
