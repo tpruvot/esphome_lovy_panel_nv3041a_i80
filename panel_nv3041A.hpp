@@ -19,7 +19,7 @@ class Panel_NV3041A_I80 : public esphome::PollingComponent, public lgfx::LGFX_De
   lgfx::Bus_Parallel8 _bus_instance;
   // lgfx::Touch_CST226 _touch_instance;// CST3240 not yet in LovyanGFX
   // PR: https://github.com/lovyan03/LovyanGFX/pull/1006/changes
-  lgfx::Touch_CST3420 _touch_instance;
+  lgfx::Touch_CST3240 _touch_instance;
 
   volatile bool touch_triggered_{false};
   lgfx::v1::touch_point_t points[3];
@@ -63,7 +63,7 @@ public:
     {
       auto cfg = _panel_instance.config();
       cfg.pin_cs           = -1;          // CSX Active Low
-      cfg.pin_rst          = GPIO_NUM_38; // RST
+      cfg.pin_rst          = GPIO_NUM_38; // TP_RST shared
       //cfg.pin_bl         = GPIO_NUM_15; // Backlight in ESPHome
       //cfg.pin_te         = GPIO_NUM_48; // Frame synch interrupt
       cfg.invert           = true;
@@ -102,7 +102,6 @@ public:
   void setup() override {
     init();
     setRotation(3); // Landscape
-    _panel_instance.init(true); // true, with RST
     fillScreen(TFT_BLACK);
 
     // touch screen interrupt
@@ -116,6 +115,8 @@ public:
 
     gpio_install_isr_service(0);
     gpio_isr_handler_add(TP_INT, on_touch_isr, (void*)this);
+
+    //uint_fast32_t touch_id = _touch_instance.getChipID();
 
     //todo: font_roboto.loadFont("/spiffs/roboto.ttf");
     //font_icons.loadFont("/spiffs/icons_16.ttf");
@@ -133,15 +134,20 @@ public:
     }
   }
 
-  void sleep() {
+  void sleep(bool withTouch = false) {
     // We wake up backlight with touch, avoid touch screen deep sleep
-    //_touch_instance.sleep();
+    if (withTouch)
+      _touch_instance.sleep();
     _panel_instance.setSleep(1);
   }
 
-  void wakeup() {
-    _panel_instance.setSleep(0);
-    _touch_instance.wakeup();
+  void wakeup(bool fullReset = false) {
+    if (!fullReset) {
+      _panel_instance.setSleep(0);
+    } else {
+      _panel_instance.init(fullReset);
+      _touch_instance.wakeup();
+    }
   }
 
   void loop() override {
@@ -151,7 +157,7 @@ public:
       if (res > 0) {
           this->touched = true;
           tp = points[0];
-          ESP_LOGD("CST3240", "touch at %d/%d", tp.x, tp.y);
+          ESP_LOGI("CST3240", "touch at %d/%d", tp.x, tp.y);
           this->update();
           this->touched = false;
           return;
