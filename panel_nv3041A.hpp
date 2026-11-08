@@ -155,12 +155,13 @@ public:
       this->touch_triggered_ = false;
       uint_fast8_t res = _touch_instance.getTouchRaw(&points[0], 3);
       if (res > 0) {
+        tp = points[0];
+        if (tp.size) {
           this->touched = true;
-          tp = points[0];
-          ESP_LOGI("CST3240", "touch at %d/%d", tp.x, tp.y);
+          ESP_LOGD("CST3240", "touch at %d/%d", tp.x, tp.y);
           this->update();
           this->touched = false;
-          return;
+        }
       }
     }
   }
