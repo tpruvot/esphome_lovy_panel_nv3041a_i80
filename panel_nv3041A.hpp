@@ -100,8 +100,9 @@ public:
   }
 
   void setup() override {
+
     init();
-    setRotation(3); // Landscape
+    setRotation(0); // Landscape
     fillScreen(TFT_BLACK);
 
     // touch screen interrupt
@@ -153,17 +154,14 @@ public:
   void loop() override {
     if (this->touch_triggered_) {
       this->touch_triggered_ = false;
-      uint_fast8_t res = _touch_instance.getTouchRaw(&points[0], 3);
-      if (res > 0) {
+      //uint_fast8_t res = _touch_instance.getTouchRaw(&points[0], 3);
+      uint_fast8_t res = getTouch(&points[0], 1);
+      if (res == 0) { // touch released if 0
         tp = points[0];
-        if (tp.size) {
-          this->touched = true;
-          ESP_LOGD("CST3240", "touch at %d/%d %d:%d", tp.x, tp.y, tp.id, tp.size);
-          this->update();
-          this->touched = false;
-        } else {
-          ESP_LOGD("CST3240", "move at %d/%d %d:%d", tp.x, tp.y, tp.id, tp.size);
-        }
+        this->touched = true;
+        ESP_LOGD("CST3240", "touch at %d/%d %d:%d", tp.x, tp.y, tp.id, tp.size);
+        this->update();
+        this->touched = false;
       }
     }
   }
