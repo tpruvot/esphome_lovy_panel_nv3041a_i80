@@ -1,0 +1,31 @@
+esphome:
+  name: panellan-nv3041a-gateway
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf # Obligatoire pour utiliser esp_lcd et la gestion fine de la mémoire
+
+# Inclusion du composant externe local
+external_components:
+  - source:
+      type: local
+      path: external_components
+
+# Configuration du bus CAN de la carte PanelLan pour l'onduleur
+canbus:
+  - platform: esp32_can
+    id: can_bus_onduleur
+    rx_pin: GPIO_17  # À vérifier selon le schéma exact du modèle CAN PanelLan
+    tx_pin: GPIO_18  # À vérifier selon le schéma exact du modèle CAN PanelLan
+    bit_rate: 250kbps
+
+# Configuration de la plateforme d'affichage pure
+display:
+  - platform: nv3041a_i80
+    id: mon_ecran
+    rotation: 0°
+    lambda: |-
+      it.fill(Color::BLACK);
+      it.printf(10, 10, id(ma_font), Color::WHITE, "Onduleur Passerelle CAN");
+
