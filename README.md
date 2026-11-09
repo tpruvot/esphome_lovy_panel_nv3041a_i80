@@ -1,14 +1,16 @@
-ESPHome component to handle LovyanGFX esp-idf devices.
+ESPHome component to handle an i80 NV3041A panel.
 ---
 
 **Current status: Alpha (Display protocol to code, touchscreen under PR)**
 
 For now, ESPHome mipi display extensions don't handle i80 (intel 8080 / 8 bits parallel) protocol.
 
-Unfortunately, the display driver is not available in i80 (only in quad SPI) in the LovyanGLX library.
-The factory SDK is available and maybe usable, but with bulk data init in Hexadecimal.
+Unfortunately, the display driver is not available in i80 (only in quad SPI) in the LovyanGLX library neither
+and the "IM" pins hardcode the protocol to use (to GND) on the controller flat cable (to inspect with good eyes ;).
 
-Made for my own use with a JK BMS modbus, this CAN RS485 panel board is based on a ESP32 S3 (16MB)
+The factory SDK is available and should be usable, but with bulk data init in Hexadecimal to import.
+
+Made for my own use with an inverter and maybe some BMS, this CAN/RS485 panel board is based on a ESP32 S3 (16MB)
 with a display NV3041A. Full ref on the PCB is PanelLan ZX4D30CE08S-V12 but its sold also as
 WT32S3-43H on alibaba. It may be seen with the 4827 suffix (on the box) for the resolution 480x272.
 WT prefix is for Wireless-Tag, visible also on the ESP shield on the PCB.
@@ -16,12 +18,11 @@ WT prefix is for Wireless-Tag, visible also on the ESP shield on the PCB.
 For sure it allow also bluetooth and wifi and a few external gpios,
 it's sold with 2 sets of connectors, one for CAN/RS485/RS232 and the other to debug.
 
-This component was required because the ESP LovyanGFX library is hard to include in ESPHome.
-
-This allow also to use the integrated touchscreen CST3240 to create custom buttons and to command
+This will allow to use the integrated touchscreen CST3240 to create custom buttons and to command
 the pwm backlight from ESPHome, to avoid backlight when unused...
 
-Sample yaml is based on JK BMS modbus and show the display components integration to query a few entities.
+Sample yaml is based on JK BMS modbus project (syssi) and show the display components integration to query a few entities.
+It doesn't require any other component from his repository, modbus is a standard ESPHome component.
 
 <img width="484" height="355" alt="PCB-Picture" src="https://github.com/user-attachments/assets/eccf1b4d-2b50-4b09-8e9c-263c05c333b7" />
 
