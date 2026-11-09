@@ -1,9 +1,12 @@
 ESPHome component to handle LovyanGFX esp-idf devices.
 ---
 
-**Current status: Alpha (Display init to fix, and touchscreen under PR)**
+**Current status: Alpha (Display protocol to code, touchscreen under PR)**
 
-For now, ESPHome mipi display extensions don't handle i80 (8 bits parallel) protocol.
+For now, ESPHome mipi display extensions don't handle i80 (intel 8080 / 8 bits parallel) protocol.
+
+Unfortunately, the display driver is not available in i80 (only in quad SPI) in the LovyanGLX library.
+The factory SDK is available and maybe usable, but with bulk data init in Hexadecimal.
 
 Made for my own use with a JK BMS modbus, this CAN RS485 panel board is based on a ESP32 S3 (16MB)
 with a display NV3041A. Full ref on the PCB is PanelLan ZX4D30CE08S-V12 but its sold also as
@@ -26,11 +29,12 @@ Sample yaml is based on JK BMS modbus and show the display components integratio
 Links
 -----
 
-Datasheets:
+Datasheets and documents :
+
+- https://fccid.io/2BCBK-ZX4D30CE08S
 - https://img03.71360.com/w3/4e1e0o/20240731/32602985e837b5826126e4c7d6cd2b52.pdf
 - https://en.wireless-tag.com/product-item-49.html
 - https://techinfodepot.shoutwiki.com/wiki/PanelLan_SC07
-
 - https://github.com/lovyan03/LovyanGFX
 - https://components.espressif.com/components/espressif/esp_lcd_panel_io_additions/versions/1.0.1~1/readme
 - https://github.com/syssi/esphome-jk-bms

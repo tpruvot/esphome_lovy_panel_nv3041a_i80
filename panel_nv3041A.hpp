@@ -47,8 +47,8 @@ public:
       cfg.port = 0;              // LCD_CAM ESP32-S3 (I2S_NUM_0)
       cfg.freq_write = 16000000; // 16 MHz
 
-      cfg.pin_wr = GPIO_NUM_21;  // WR
-      cfg.pin_rd = -1;           // RD always on
+      cfg.pin_wr = GPIO_NUM_21;  // WR clock pulled high
+      cfg.pin_rd = -1;           // RD (pulled high)
       cfg.pin_rs = GPIO_NUM_47;  // RS / DC
 
       cfg.pin_d0 = GPIO_NUM_39; cfg.pin_d1 = GPIO_NUM_40;
@@ -62,7 +62,7 @@ public:
 
     {
       auto cfg = _panel_instance.config();
-      cfg.pin_cs           = -1;          // CSX Active Low
+      cfg.pin_cs           = -1;          // pulled high in display
       cfg.pin_rst          = GPIO_NUM_38; // TP_RST shared
       //cfg.pin_bl         = GPIO_NUM_15; // Backlight in ESPHome
       //cfg.pin_te         = GPIO_NUM_48; // Frame synch interrupt
@@ -109,7 +109,7 @@ public:
     gpio_config_t io_conf = {};
     io_conf.intr_type = GPIO_INTR_NEGEDGE;
     io_conf.pin_bit_mask = (1ULL << TP_INT);
-    io_conf.mode = GPIO_MODE_INPUT;             // Mode Entrée
+    io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;    // Pull-Up resistor
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     gpio_config(&io_conf);
