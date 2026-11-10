@@ -1,0 +1,27 @@
+import esphome.codegen as cg
+import esphome.config_validation as cv
+from esphome import pins
+from esphome.components import touchscreen, i2c
+from esphome.const import CONF_ID, CONF_INTERRUPT_PIN
+from . import cst3240_i2c_ns
+
+I2C_ADDRESS = 0x5A
+
+cst3240_i2c_ns = cg.esphome_ns.namespace("cst3240_i2c")
+CST3240Touchscreen = cst3240_i2c_ns.class_(
+    "CST3240Touchscreen", touchscreen.Touchscreen, i2c.I2CDevice
+)
+
+CONFIG_SCHEMA = touchscreen.TOUCHSCREEN_SCHEMA.extend({
+    cv.GenerateID(): cv.declare_id(CST3240Touchscreen),
+    cv.Optional(CONF_INTERRUPT_PIN): pins.gpio_pin_schema({ "input": True }),
+}).extend(i2c.i2c_device_schema(I2C_ADDRESS))
+
+async def to_code(config):
+    var = cg.new_Pvariable(config[CONF_ID])
+    await touchscreen.register_touchscreen(var, config)
+    await i2c.register_i2c_device(var, config)
+
+    if CONF_INTERRUPT_PIN in config:
+        pin = await cg.gpio_pin_expression(config[CONF_INTERRUPT_PIN])
+        cg.add(var.set_interrupt_pin(pin))

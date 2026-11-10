@@ -37,7 +37,7 @@ psram:
 external_components:
   - source:
       type: local
-      path: nv3041a_i80
+      path: .
 
 wifi:
   ssid: !secret wifi_ssid
@@ -72,13 +72,13 @@ api:
   encryption:
     key: !secret esphome_api_key
 
-# canbus:
-#   - platform: esp32_can
-#     id: can_bus_onduleur
-#     can_id: 0
-#     rx_pin: GPIO7
-#     tx_pin: GPIO6
-#     bit_rate: 250kbps
+canbus:
+  - platform: esp32_can
+    id: can_bus_onduleur
+    can_id: 0
+    rx_pin: GPIO7
+    tx_pin: GPIO6
+    bit_rate: 250kbps
 
 uart:
   # RS232 TTL (CAN/RS connector)
@@ -168,11 +168,40 @@ script:
       # 2. noisy meep meep
       - rtttl.play: "alarme:d=4,o=5,b=120:e,p,e"
 
+# I2C TOUCHSCREEN CST3240
+i2c:
+  sda: GPIO09
+  scl: GPIO03
+  frequency: 400kHz
+
+touchscreen:
+  - platform: cst3240_i2c
+    id: cst3240
+    display: display0
+    interrupt_pin: GPIO42
+    transform:
+      swap_xy: false
+      mirror_x: false
+      mirror_y: false
+
+binary_sensor:
+  - platform: touchscreen
+    name: "Test Button"
+    touchscreen_id: cst3240
+    x_min: 0
+    y_min: 0
+    # top left test
+    x_max: 100
+    y_max: 100
+    on_press:
+      then:
+        - logger.log: "Touch button pressed!"
+
 # Other Available GPIOs not used :
 # USB: DN 19 DP 20
 # EXT: 1 2 4 5
 # Reset button: GPIO 0
-# Debug UART: by default ()
+# Debug UART: by default
 
 # Used on display and HA diagnostics
 text_sensor:
