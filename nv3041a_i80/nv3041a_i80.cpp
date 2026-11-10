@@ -20,7 +20,8 @@ uint8_t reflect_bits(uint8_t b) {
   return b;
 }
 
-void NV3041ADisplay::setup() {
+// real setup() later...
+void NV3041ADisplay::test_setup() {
   ESP_LOGI(TAG, "--- DEBUT DU TEST DE BIT-BANGING MANUEL ---");
 
   // 1. Reset matériel strict (GPIO 38)
@@ -172,9 +173,9 @@ void NV3041ADisplay::setup() {
 // Laissez les fonctions update() et draw_absolute_pixel_internal() vides pour ce test
 void NV3041ADisplay::update() {}
 void NV3041ADisplay::draw_absolute_pixel_internal(int x, int y, Color color) {}
-/*
-void NV3041ADisplay::normal_setup() {
-  ESP_LOGCONFIG(TAG, "Initialisation du bus i80 natif pour NV3041A...");
+
+void NV3041ADisplay::setup() {
+  ESP_LOGCONFIG(TAG, "Init i80 NV3041A...");
 
   const gpio_num_t LCD_RESET_PIN = GPIO_NUM_38;
   gpio_config_t rst_cfg = {
@@ -186,9 +187,6 @@ void NV3041ADisplay::normal_setup() {
   };
   gpio_config(&rst_cfg);
 
-  // Cycle de Reset matériel (Timings requis par New Vision)
-  gpio_set_level(LCD_RESET_PIN, 1);
-  delay(10);
   gpio_set_level(LCD_RESET_PIN, 0); // reinit
   delay(20);
   gpio_set_level(LCD_RESET_PIN, 1); // Retour au niveau haut
@@ -211,7 +209,7 @@ void NV3041ADisplay::normal_setup() {
   esp_lcd_panel_io_i80_config_t io_config = {
     .cs_gpio_num = 1, // EXT GPIO1 du bornier externe comme CS fictif pour le DMA (à modifier plus tard)
     //.pclk_hz = 16 * 1000 * 1000, // Fréquence d'horloge du bus parallèle
-    .pclk_hz = 4 * 1000 * 1000,  // 8 MHz pour la stabilité globale
+    .pclk_hz = 8 * 1000 * 1000,  // 8 MHz pour la stabilité globale
     .trans_queue_depth = 10,
     .lcd_cmd_bits = 8,
     .lcd_param_bits = 8,
@@ -225,13 +223,15 @@ void NV3041ADisplay::normal_setup() {
 
   // 2. Séquence d'initialisation brute issue du SDK constructeur PanelLan
   const std::vector<LcdCmd> init_sequence = {
-    {0xFF, {0xA5}, 0}, {0xE7, {0x10}, 0}, {0x35, {0x01}, 0},
-    {0x3A, {0x01}, 0}, // Format de couleur : 0x01 = RGB565 (16 bits)
-    {0x40, {0x01}, 0},
-    {0x41, {0x01}, 0}, // Configuration d'interface : 0x01 = Bus 8 bits parallel
+    {0xFF, {0xA5}, 0},
+    {0xE7, {0x10}, 0}, {0x35, {0x01}, 0}, // TE_output_en
+    {0x3A, {0x01}, 0}, // Colors : 00 666 - 01 565 (16 bits)
+    {0x40, {0x01}, 0}, // 01:IPS
+    {0x41, {0x01}, 0}, // interface : 0x01 = Bus 8 bits parallel (3=16)
     {0x55, {0x01}, 0}, {0x44, {0x15}, 0}, {0x45, {0x15}, 0}, {0x7D, {0x03}, 0},
     {0xC1, {0xAB}, 0}, {0xC2, {0x17}, 0}, {0xC3, {0x10}, 0}, {0xC6, {0x3A}, 0},
-    {0xC7, {0x25}, 0}, {0xC8, {0x11}, 0}, {0x7A, {0x49}, 0}, {0x6F, {0x2F}, 0},
+    {0xC7, {0x25}, 0}, {0xC8, {0x11}, 0}, {0x7A, {0x49}, 0},
+    {0x6F, {0x2F}, 0}, // user_gvdd
     {0x78, {0x4B}, 0}, {0x73, {0x08}, 0}, {0x74, {0x12}, 0}, {0xC9, {0x00}, 0},
     {0x67, {0x11}, 0},
     {0x51, {0x20}, 0}, {0x52, {0x7C}, 0}, {0x53, {0x1C}, 0}, {0x54, {0x77}, 0},
@@ -255,8 +255,8 @@ void NV3041ADisplay::normal_setup() {
     {0x90, {0x06}, 0}, {0xB0, {0x06}, 0}, {0x91, {0x0F}, 0}, {0xB1, {0x0F}, 0},
     {0x92, {0x16}, 0}, {0xB2, {0x16}, 0},
     {0xFF, {0x00}, 0},
-    {0x11, {}, 120}, // Sortie de veille (Sleep Out) + 120ms d'attente
-    {0x29, {}, 100}  // Affichage Actif (Display On) + 100ms d'attente
+    {0x11, {}, 120}, // Sleep Out) + 120ms
+    {0x29, {}, 100}  // Display On + 100ms
   };
   ESP_LOGI(TAG, "Configuration des fenêtres de coordonnées (CASET/RASET)...");
 
@@ -275,6 +275,7 @@ void NV3041ADisplay::normal_setup() {
     }
   }
 
+  // SDK is using a cache of (8 * 1024)
   this->buffer_size_ = this->get_width_internal() * this->get_height_internal() * 2;
   //this->init_internal_(this->buffer_size_);
   this->buffer_ = (uint8_t *) heap_caps_malloc(this->buffer_size_, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
@@ -287,7 +288,7 @@ void NV3041ADisplay::normal_setup() {
     this->init_internal_(this->buffer_size_);
   }
   ESP_LOGI(TAG, "Driver NV3041A configured!");
-}*/
+}
 
 /*
 void NV3041ADisplay::draw_absolute_pixel_internal(int x, int y, Color color) {

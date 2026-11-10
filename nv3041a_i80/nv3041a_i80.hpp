@@ -14,6 +14,8 @@ class NV3041ADisplay : public display::DisplayBuffer {
   void setup() override;
   void update() override;
 
+  void test_setup(); // temporary init test
+
   void sleep() { }
   void wakeup() { }
 
