@@ -1,7 +1,7 @@
 ESPHome component to handle an i80 NV3041A panel.
 ---
 
-**Current status: Alpha (Display protocol to code, touchscreen under PR)**
+**Current status: Alpha (Display protocol to code, esphome touchscreen ok**
 
 For now, ESPHome mipi display extensions don't handle i80 (intel 8080 / 8 bits parallel) protocol.
 
@@ -18,8 +18,10 @@ WT prefix is for Wireless-Tag, visible also on the ESP shield on the PCB.
 For sure it allow also bluetooth and wifi and a few external gpios,
 it's sold with 2 sets of connectors, one for CAN/RS485/RS232 and the other to debug.
 
-This will allow to use the integrated touchscreen CST3240 to create custom buttons and to command
+This allow to use the integrated touchscreen CST3240 to create custom buttons and to command
 the pwm backlight from ESPHome, to avoid backlight when unused...
+
+The panel also has a buzzer which can do alarms, its configured in the sample for the touches.
 
 Sample yaml is based on JK BMS modbus project (syssi) and show the display components integration to query a few entities.
 It doesn't require any other component from his repository, modbus is a standard ESPHome component.
