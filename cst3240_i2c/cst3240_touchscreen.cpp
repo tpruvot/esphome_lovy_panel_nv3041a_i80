@@ -10,7 +10,7 @@ void CST3240Touchscreen::setup() {
   ESP_LOGCONFIG(TAG, "setup()");
   if (this->interrupt_pin_ != nullptr) {
     this->interrupt_pin_->setup();
-    //this->attach_interrupt_();
+    this->attach_interrupt_(this->interrupt_pin_, gpio::INTERRUPT_FALLING_EDGE);
   }
   if (!this->check_init_())
     return;
@@ -37,7 +37,7 @@ void CST3240Touchscreen::setup() {
     this->x_raw_max_ = buf[0] + (buf[1] << 8);
     this->y_raw_max_ = buf[2] + (buf[3] << 8);
   }
-  ESP_LOGI(TAG, "Resolution %d/%d", this->x_raw_max_, this->y_raw_max_);
+  ESP_LOGD(TAG, "Resolution %d/%d", this->x_raw_max_, this->y_raw_max_);
   this->write_reg16_(0xD109); // exit 0xD101 debug mode
 }
 
@@ -108,19 +108,16 @@ void CST3240Touchscreen::update_touches() {
       fingers++;
       ESP_LOGD(TAG, "%d: event at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
     } else {
-      // touchscreen looping here without reason after click
+      // touchscreen may loop here after click without interrupt pin linked
       if (tp.z_raw != last_tp.z_raw || tp.x_raw != last_tp.x_raw) {
         last_tp = tp;
         this->is_touched_ = false;
         ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
-        return;
       } else {
-        // to go bed, stop calling me, noisy esphome touchscreen class...
-        // todo: may need some i2c data clear or such, try some LOGI here
         this->touches_.clear();
         this->skip_update_ = true;
-        return;
       }
+      return;
     }
   }
   if (fingers)

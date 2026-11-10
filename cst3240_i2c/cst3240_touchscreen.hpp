@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "esphome/core/gpio.h"
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/components/touchscreen/touchscreen.h"
 #include "esphome/core/component.h"
