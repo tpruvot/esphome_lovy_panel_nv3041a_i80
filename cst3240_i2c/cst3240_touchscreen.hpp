@@ -18,7 +18,7 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
 
   void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin_ = pin; }
 
-  bool button_touched{};
+  touchscreen::TouchPoint last_tp{};
 
  protected:
   void update_touches() override;

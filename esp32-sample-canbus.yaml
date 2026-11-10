@@ -63,10 +63,13 @@ ota:
   encryption:
 
 logger:
-  # NOTE: In production this should be INFO or lower to reduce execution time and remove warnings like:
-  # [W][component:239]: Component modbus_controller took a long time for an operation (107 ms).
-  # [W][component:240]: Components should block for at most 30 ms.
-  level: INFO  # DEBUG
+  level: INFO
+  # level: VERBOSE
+  # initial_level: INFO
+  # logs:
+  #   i2c: INFO
+  #   touchscreen: VERBOSE
+  #   ?: INFO
 
 captive_portal:
 # web_server:
@@ -182,7 +185,6 @@ i2c:
 
 touchscreen:
   - platform: cst3240_i2c
-# - platform: cst328 # similar but wrong i2c address (1A vs 5A)
     setup_priority: -20 # after display
     id: cst3240
     display: display0
@@ -190,26 +192,21 @@ touchscreen:
       number: GPIO42
       inverted: true
       mode: INPUT_PULLUP
+    on_release:
+      lambda: "id(bip_ok).execute();"
 
 binary_sensor:
   - platform: touchscreen
     name: "Test Button"
     touchscreen_id: cst3240
-    x_min: 0
-    y_min: 0
-    # top left test
-    x_max: 100
-    y_max: 100
-    # WTF ...
+    # bottom right alarm test
+    x_min: 350
+    y_min: 200
+    x_max: 480
+    y_max: 272
     on_click:
       then:
-        - logger.log: "Touch button clicked!"
-    on_press:
-      then:
-        - logger.log: "Touch button pressed!"
-    on_release:
-      then:
-        - logger.log: "Touch button released!"
+        - lambda: "id(bip_alarm).execute();"
 
 # Other Available GPIOs not used :
 # USB: DN 19 DP 20

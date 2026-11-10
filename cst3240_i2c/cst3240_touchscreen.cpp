@@ -68,70 +68,63 @@ bool CST3240Touchscreen::read_reg16_(uint16_t reg, uint8_t *data, size_t length)
 bool CST3240Touchscreen::check_init_() {
   if (this->inited_) return true;
   this->inited_ = this->write_reg16_(0xD109);
+  this->is_touched_ = false;
   return this->inited_;
 }
 
 void CST3240Touchscreen::update_touches() {
-  if (!this->check_init_()) return;
+  if (!this->check_init_()) {
+    this->skip_update_ = true;
+    return;
+  }
 
   if (this->interrupt_pin_ != nullptr && this->interrupt_pin_->digital_read()) {
-    // if no INT triggered, no I2C read
-    if (!this->touches_.empty()) {
-      // rare case...
-      this->button_touched = true;
-      this->touches_.clear();
-      this->send_touches_();
-    }
     return;
   }
 
   uint8_t data[(MAX_TOUCH_POINTS * 7)] = {0};
 
   if (!this->read_reg16_(0xD000, data, sizeof(data))) {
+    this->skip_update_ = true;
     return;
   }
 
-  bool released = (data[0] & 0x04) == 0;
-  if (released) {
-    if (!this->touches_.empty()) {
-      for (auto &tp : this->touches_) {
-        this->button_touched = true;
-        ESP_LOGI(TAG, "%d: click at %d/%d", tp.second.id, tp.second.x, tp.second.y);
-        tp.second.state = 4; // 0 means invalid
-      }
-      this->send_touches_();
-      this->touches_.clear();
-    }
-    return;
-  }
-
-  this->button_touched = false;
-  uint8_t touches = 0;
-  //this->touches_.clear();
+  uint8_t fingers = 0;
 
   for (uint8_t i = 0; i < MAX_TOUCH_POINTS; i++) {
     uint8_t offset = i * 7;
     touchscreen::TouchPoint tp;
-    tp.id = (data[offset + 5] & 0x0F) - 1;
-    if (tp.id >= MAX_TOUCH_POINTS) continue; // (0x0F-1 if empty)
+    tp.id = data[offset + 5] & 0x0F;
+    if (tp.id > MAX_TOUCH_POINTS || tp.id == 0) break;
 
-    tp.x = (data[offset + 1] << 4) | ((data[offset + 3] >> 4) & 0x0F);
-    tp.y = (data[offset + 2] << 4) | (data[offset + 3] & 0x0F);
+    tp.x_raw = (data[offset + 1] << 4) | ((data[offset + 3] >> 4) & 0x0F);
+    tp.y_raw = (data[offset + 2] << 4) | (data[offset + 3] & 0x0F);
+    tp.z_raw = (data[offset + 4]);
 
     // bit 0x04 EVT_PRESS (else EVT_RELEASE)
     if (data[offset] & 0x04) {
-      // 2: MOVE, 1: DOWN (new one)
-      tp.state = (this->touches_.count(tp.id) > 0) ? 2 : 1;
+      // will set is_touched_
+      this->add_raw_touch_position_(tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
+      fingers++;
+      ESP_LOGD(TAG, "%d: event at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
     } else {
-      continue;
+      // touchscreen looping here without reason after click
+      if (tp.z_raw != last_tp.z_raw || tp.x_raw != last_tp.x_raw) {
+        last_tp = tp;
+        this->is_touched_ = false;
+        ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
+        return;
+      } else {
+        // to go bed, stop calling me, noisy esphome touchscreen class...
+        // todo: may need some i2c data clear or such, try some LOGI here
+        this->touches_.clear();
+        this->skip_update_ = true;
+        return;
+      }
     }
-    this->touches_[tp.id] = tp;
-    ESP_LOGD(TAG, "%d: moved at %d/%d", tp.id, tp.x, tp.y);
   }
-  if (!this->touches_.empty()) {
+  if (fingers)
     this->send_touches_();
-  }
-
 } // update_touches
 
 } // namespace cst3240_i2c
