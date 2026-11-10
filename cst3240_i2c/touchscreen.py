@@ -14,7 +14,7 @@ CST3240Touchscreen = cst3240_i2c_ns.class_(
 
 CONFIG_SCHEMA = touchscreen.TOUCHSCREEN_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(CST3240Touchscreen),
-    cv.Optional(CONF_INTERRUPT_PIN): pins.gpio_pin_schema({ "input": True }),
+    cv.Optional(CONF_INTERRUPT_PIN): pins.internal_gpio_input_pin_schema,
 }).extend(i2c.i2c_device_schema(I2C_ADDRESS))
 
 async def to_code(config):
