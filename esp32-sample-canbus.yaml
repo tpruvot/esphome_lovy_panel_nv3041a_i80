@@ -118,6 +118,7 @@ globals:
 output:
   - platform: ledc
     id: backlight_output
+    # setup_priority: -20 # after display
     pin: GPIO15
     frequency: 500Hz
     min_power: 0.01
@@ -155,7 +156,8 @@ number:
 # BUZZER
 rtttl:
   output: buzzer_pwm
-  id: mon_buzzer
+  id: buzzer
+  setup_priority: -30
 
 script:
   - id: bip_ok
@@ -180,21 +182,14 @@ i2c:
 
 touchscreen:
   - platform: cst3240_i2c
+# - platform: cst328 # similar but wrong i2c address (1A vs 5A)
+    setup_priority: -20 # after display
     id: cst3240
     display: display0
     interrupt_pin:
       number: GPIO42
       inverted: true
       mode: INPUT_PULLUP
-    transform:
-      swap_xy: false
-      mirror_x: false
-      mirror_y: false
-    calibration:
-      x_min: 0
-      x_max: 479
-      y_min: 0
-      y_max: 271
 
 binary_sensor:
   - platform: touchscreen
@@ -205,9 +200,16 @@ binary_sensor:
     # top left test
     x_max: 100
     y_max: 100
+    # WTF ...
+    on_click:
+      then:
+        - logger.log: "Touch button clicked!"
     on_press:
       then:
         - logger.log: "Touch button pressed!"
+    on_release:
+      then:
+        - logger.log: "Touch button released!"
 
 # Other Available GPIOs not used :
 # USB: DN 19 DP 20
