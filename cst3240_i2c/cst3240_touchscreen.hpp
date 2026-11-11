@@ -12,10 +12,12 @@ static constexpr uint8_t MAX_TOUCH_POINTS = 4;
 
 class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevice {
  public:
+  void reset();
   void setup() override;
   void dump_config() override;
 
   void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin_ = pin; }
+  void set_reset_pin(InternalGPIOPin *pin) { this->reset_pin_ = pin; }
 
   touchscreen::TouchPoint last_tp{};
 
@@ -35,6 +37,7 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
   uint16_t fw_build_{};
 
   InternalGPIOPin *interrupt_pin_{nullptr};
+  InternalGPIOPin *reset_pin_{nullptr};
 };
 
 }  // namespace cst3240_i2c

@@ -188,10 +188,14 @@ touchscreen:
     setup_priority: -20 # after display
     id: cst3240
     display: display0
+    # important and required (mode too)
     interrupt_pin:
       number: GPIO42
-      inverted: true
       mode: INPUT_PULLUP
+      inverted: true
+    # reset_pin:
+    #   number: GPIO38
+    #   mode: OUTPUT
     on_release:
       lambda: "id(bip_ok).execute();"
 
@@ -224,7 +228,7 @@ text_sensor:
     id: esp_ip_address
     name: "WiFi IP address"
     entity_category: diagnostic
-    update_interval: 60s
+    update_interval: 120s
     icon: "mdi:ip-outline"
     lambda: |-
       return id(wifi_ip).state;

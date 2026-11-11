@@ -6,8 +6,23 @@ namespace cst3240_i2c {
 
 static const char *const TAG = "CST3240";
 
+void CST3240Touchscreen::reset() {
+  if (this->reset_pin_ != nullptr) {
+    this->inited_ = false;
+    this->reset_pin_->digital_write(false);
+    delay(5);
+    this->reset_pin_->digital_write(true);
+    delay(10);
+  }
+}
+
 void CST3240Touchscreen::setup() {
   ESP_LOGCONFIG(TAG, "setup()");
+  // optional, our display shares it
+  if (this->reset_pin_ != nullptr) {
+    this->reset_pin_->setup();
+    this->reset();
+  }
   if (this->interrupt_pin_ != nullptr) {
     this->interrupt_pin_->setup();
     this->attach_interrupt_(this->interrupt_pin_, gpio::INTERRUPT_FALLING_EDGE);
@@ -30,7 +45,7 @@ void CST3240Touchscreen::setup() {
     this->fw_ver_minor_ = buf[2];
     this->fw_build_ = buf[0] + (buf[1] << 8);
     // wrote for ver. 1.0.1
-    ESP_LOGD(TAG, "FW ver. %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
+    ESP_LOGI(TAG, "FW ver. %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
   }
   if (this->read_reg16_(0xD1F8, buf, sizeof(buf))) {
     // may be set by esphome display
@@ -44,12 +59,13 @@ void CST3240Touchscreen::setup() {
 void CST3240Touchscreen::dump_config() {
   ESP_LOGCONFIG(TAG, "I2C Touchscreen");
   LOG_I2C_DEVICE(this);
-  if (this->interrupt_pin_ != nullptr) {
+  if (this->reset_pin_ != nullptr)
+    LOG_PIN("  TP_RST: ", this->reset_pin_);
+  if (this->interrupt_pin_ != nullptr)
     LOG_PIN("  TP_INT: ", this->interrupt_pin_);
-    ESP_LOGCONFIG(TAG, "  Chip ID: 0x%04X, Project ID: 0x%04X", this->chip_id_, this->project_id_);
-    ESP_LOGCONFIG(TAG, "  FW version: %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
-    ESP_LOGCONFIG(TAG, "  X/Y resolution: %d/%d", this->x_raw_max_, this->y_raw_max_);
-  }
+  ESP_LOGCONFIG(TAG, "  Chip ID: 0x%04X, Project ID: 0x%04X", this->chip_id_, this->project_id_);
+  ESP_LOGCONFIG(TAG, "  FW version: %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
+  ESP_LOGCONFIG(TAG, "  X/Y resolution: %d/%d", this->x_raw_max_, this->y_raw_max_);
 }
 
 bool CST3240Touchscreen::write_reg16_(uint16_t reg) {
@@ -79,6 +95,8 @@ void CST3240Touchscreen::update_touches() {
   }
 
   if (this->interrupt_pin_ != nullptr && this->interrupt_pin_->digital_read()) {
+    // With TP_INT linked, no loop() required, ignore function call.
+    this->skip_update_ = true;
     return;
   }
 
@@ -86,6 +104,7 @@ void CST3240Touchscreen::update_touches() {
 
   if (!this->read_reg16_(0xD000, data, sizeof(data))) {
     this->skip_update_ = true;
+    ESP_LOGW(TAG, "I2C read error");
     return;
   }
 
@@ -114,12 +133,12 @@ void CST3240Touchscreen::update_touches() {
         this->is_touched_ = false;
         ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
       } else {
-        this->touches_.clear();
-        this->skip_update_ = true;
+        ESP_LOGD(TAG, "Looping, please set interrupt_pin in touchscreen section");
       }
-      return;
+      break;
     }
   }
+  //this->write_reg16_(0xD0AB);
   if (fingers)
     this->send_touches_();
 } // update_touches
