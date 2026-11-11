@@ -14,6 +14,9 @@ class NV3041ADisplay : public display::DisplayBuffer {
   void setup() override;
   void update() override;
 
+  void reset();
+  void set_reset_pin(InternalGPIOPin *pin) { this->reset_pin_ = pin; }
+
   void test_setup(); // temporary init test
 
   void sleep() { }
@@ -28,6 +31,9 @@ class NV3041ADisplay : public display::DisplayBuffer {
  protected:
   void draw_absolute_pixel_internal(int x, int y, Color color) override;
   void flush_buffer_to_lcd_();
+
+  InternalGPIOPin *reset_pin_{nullptr};
+  bool inited_{};
 
   esp_lcd_i80_bus_handle_t io_bus_{nullptr};
   esp_lcd_panel_io_handle_t panel_io_{nullptr};

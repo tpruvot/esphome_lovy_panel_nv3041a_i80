@@ -13,6 +13,16 @@ struct LcdCmd {
   uint32_t delay_ms;
 };
 
+void NV3041ADisplay::reset() {
+  if (this->reset_pin_ != nullptr) {
+    this->inited_ = false;
+    this->reset_pin_->digital_write(false);
+    delay(8);
+    this->reset_pin_->digital_write(true);
+    delay(50);
+  }
+}
+
 uint8_t reflect_bits(uint8_t b) {
   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
@@ -24,20 +34,10 @@ uint8_t reflect_bits(uint8_t b) {
 void NV3041ADisplay::test_setup() {
   ESP_LOGI(TAG, "--- DEBUT DU TEST DE BIT-BANGING MANUEL ---");
 
-  // 1. Reset matériel strict (GPIO 38)
-  const gpio_num_t LCD_RESET_PIN = GPIO_NUM_38;
-  gpio_config_t rst_cfg = {
-    .pin_bit_mask = (1ULL << LCD_RESET_PIN),
-    .mode = GPIO_MODE_OUTPUT,
-    .pull_up_en = GPIO_PULLUP_DISABLE,
-    .pull_down_en = GPIO_PULLDOWN_DISABLE,
-    .intr_type = GPIO_INTR_DISABLE
-  };
-  gpio_config(&rst_cfg);
-
-  gpio_set_level(LCD_RESET_PIN, 1); delay(10);
-  gpio_set_level(LCD_RESET_PIN, 0); delay(50);
-  gpio_set_level(LCD_RESET_PIN, 1); delay(200);
+  if (this->reset_pin_ != nullptr) {
+    this->reset_pin_->setup();
+    this->reset();
+  }
 
   // 2. Configuration minimale du bus (Fréquence très basse à 1 MHz pour éliminer tout parasite)
   esp_lcd_i80_bus_config_t bus_config = {
@@ -175,22 +175,12 @@ void NV3041ADisplay::update() {}
 void NV3041ADisplay::draw_absolute_pixel_internal(int x, int y, Color color) {}
 
 void NV3041ADisplay::setup() {
-  ESP_LOGCONFIG(TAG, "Init i80 NV3041A...");
+  ESP_LOGCONFIG(TAG, "display setup()");
 
-  const gpio_num_t LCD_RESET_PIN = GPIO_NUM_38;
-  gpio_config_t rst_cfg = {
-    .pin_bit_mask = (1ULL << LCD_RESET_PIN),
-    .mode = GPIO_MODE_OUTPUT,
-    .pull_up_en = GPIO_PULLUP_DISABLE,
-    .pull_down_en = GPIO_PULLDOWN_DISABLE,
-    .intr_type = GPIO_INTR_DISABLE
-  };
-  gpio_config(&rst_cfg);
-
-  gpio_set_level(LCD_RESET_PIN, 0); // reinit
-  delay(20);
-  gpio_set_level(LCD_RESET_PIN, 1); // Retour au niveau haut
-  delay(120); // Attente que le contrôleur interne du LCD stabilise ses tensions
+  if (this->reset_pin_ != nullptr) {
+    this->reset_pin_->setup();
+    this->reset();
+  }
 
   // bus matériel 8080 8 bits, GPIO de la carte ZX4D30CE08S
   esp_lcd_i80_bus_config_t bus_config = {

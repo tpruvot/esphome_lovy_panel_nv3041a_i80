@@ -188,12 +188,12 @@ touchscreen:
     setup_priority: -20 # after display
     id: cst3240
     display: display0
-    # important and required (mode too)
+    # reset_pin: GPIO38 # shared
+    # important (mode required)
     interrupt_pin:
       number: GPIO42
       mode: INPUT_PULLUP
       inverted: true
-    reset_pin: GPIO38
     on_release:
       lambda: "id(bip_ok).execute();"
 
@@ -239,6 +239,8 @@ font:
 display:
   - platform: nv3041a_i80
     id: display0
+    setup_priority: -1 # wait logger
+    reset_pin: GPIO38
     update_interval: 10s
     rotation: 0°
     lambda: |-
