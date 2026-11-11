@@ -8,6 +8,8 @@
 namespace esphome {
 namespace cst3240_i2c {
 
+// Up to 40 channels, but this code will limit to 15 (0xF mask)
+// Each finger will charge more the I2C bus
 static constexpr uint8_t MAX_TOUCH_POINTS = 4;
 
 class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevice {

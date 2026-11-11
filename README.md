@@ -45,4 +45,5 @@ Datasheets and documents :
 - https://github.com/smartpanle/QMSD-ESP32-BSP
 - https://gitee.com/qiming-zhixian/qmsd-esp32-bsp
 - https://admin.osptek.com/uploads/NV_3041_A_Datasheet_V1_2_20221011_686486a221.pdf
+- https://www.buydisplay.com/download/ic/CST3240_Datasheet.pdf
 

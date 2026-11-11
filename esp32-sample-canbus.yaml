@@ -193,9 +193,7 @@ touchscreen:
       number: GPIO42
       mode: INPUT_PULLUP
       inverted: true
-    # reset_pin:
-    #   number: GPIO38
-    #   mode: OUTPUT
+    reset_pin: GPIO38
     on_release:
       lambda: "id(bip_ok).execute();"
 

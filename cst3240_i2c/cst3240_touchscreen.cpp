@@ -10,9 +10,9 @@ void CST3240Touchscreen::reset() {
   if (this->reset_pin_ != nullptr) {
     this->inited_ = false;
     this->reset_pin_->digital_write(false);
-    delay(5);
+    delay(8);
     this->reset_pin_->digital_write(true);
-    delay(10);
+    delay(22);
   }
 }
 
@@ -26,6 +26,7 @@ void CST3240Touchscreen::setup() {
   if (this->interrupt_pin_ != nullptr) {
     this->interrupt_pin_->setup();
     this->attach_interrupt_(this->interrupt_pin_, gpio::INTERRUPT_FALLING_EDGE);
+    this->stop_poller();
   }
   if (!this->check_init_())
     return;
@@ -133,6 +134,8 @@ void CST3240Touchscreen::update_touches() {
         this->is_touched_ = false;
         ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
       } else {
+        // Works to stop the touchscreen loop, but disable the touchscreen too
+        //this->stop_poller();
         ESP_LOGD(TAG, "Looping, please set interrupt_pin in touchscreen section");
       }
       break;
