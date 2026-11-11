@@ -188,12 +188,8 @@ touchscreen:
     setup_priority: -20 # after display
     id: cst3240
     display: display0
+    interrupt_pin: GPIO42
     # reset_pin: GPIO38 # shared
-    # important (mode required)
-    interrupt_pin:
-      number: GPIO42
-      mode: INPUT_PULLUP
-      inverted: true
     on_release:
       lambda: "id(bip_ok).execute();"
 

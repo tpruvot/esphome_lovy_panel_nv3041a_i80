@@ -8,9 +8,10 @@
 namespace esphome {
 namespace cst3240_i2c {
 
-// Up to 40 channels, but this code will limit to 15 (0xF mask)
-// Each finger will charge more the I2C bus
-static constexpr uint8_t MAX_TOUCH_POINTS = 4;
+// Each finger data will charge the I2C bus, more without interrupt_pin set
+// Note the polling mode (without int) will also prevent the automatic chip standby
+// and query the bus for these every 100ms... forever...
+static constexpr uint8_t MAX_TOUCH_POINTS = 3;
 
 class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevice {
  public:
@@ -29,6 +30,7 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
   bool check_init_();
   bool clear_reg16_(uint16_t reg);
   bool write_reg16_(uint16_t reg);
+  bool write_reg16_(uint16_t reg, uint8_t byte);
   bool read_reg16_(uint16_t reg, uint8_t *data, size_t length);
 
   bool inited_{false};

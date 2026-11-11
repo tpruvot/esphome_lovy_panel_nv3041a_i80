@@ -74,6 +74,14 @@ bool CST3240Touchscreen::write_reg16_(uint16_t reg) {
   return this->write(reinterpret_cast<uint8_t *>(&sw), 2) == i2c::ERROR_OK;
 }
 
+bool CST3240Touchscreen::write_reg16_(uint16_t reg, uint8_t byte) {
+  uint8_t data[3];
+  data[0] = reg >> 8;
+  data[1] = reg & 0xFF;
+  data[2] = byte;
+  return this->write(&data[0], 3) == i2c::ERROR_OK;
+}
+
 bool CST3240Touchscreen::read_reg16_(uint16_t reg, uint8_t *data, size_t length) {
   uint16_t sw = (reg << 8) | (reg >> 8);
   if (this->write(reinterpret_cast<uint8_t *>(&sw), 2) != i2c::ERROR_OK) {
@@ -115,6 +123,7 @@ void CST3240Touchscreen::update_touches() {
     ESP_LOGW(TAG, "I2C read error");
     return;
   }
+  this->write_reg16_(0xD000, 0xAB); // done in i2c this->read ?
 
   uint8_t fingers = 0;
 
