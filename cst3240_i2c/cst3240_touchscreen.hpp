@@ -26,9 +26,10 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
  protected:
   void update_touches() override;
 
+  bool check_init_();
+  bool clear_reg16_(uint16_t reg);
   bool write_reg16_(uint16_t reg);
   bool read_reg16_(uint16_t reg, uint8_t *data, size_t length);
-  bool check_init_();
 
   bool inited_{false};
 

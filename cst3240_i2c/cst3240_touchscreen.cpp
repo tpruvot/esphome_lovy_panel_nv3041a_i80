@@ -82,6 +82,13 @@ bool CST3240Touchscreen::read_reg16_(uint16_t reg, uint8_t *data, size_t length)
   return this->read(data, length) == i2c::ERROR_OK;
 }
 
+bool CST3240Touchscreen::clear_reg16_(uint16_t reg) {
+  uint8_t data[(MAX_TOUCH_POINTS * 7)+2] = { 0 };
+  data[0] = reg >> 8;
+  data[1] = reg & 0xFF;
+  return (this->write(&data[0], (MAX_TOUCH_POINTS * 7)+2) == i2c::ERROR_OK);
+}
+
 bool CST3240Touchscreen::check_init_() {
   if (this->inited_) return true;
   this->inited_ = this->write_reg16_(0xD109);
@@ -134,14 +141,12 @@ void CST3240Touchscreen::update_touches() {
         this->is_touched_ = false;
         ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
       } else {
-        // Works to stop the touchscreen loop, but disable the touchscreen too
-        //this->stop_poller();
-        ESP_LOGD(TAG, "Looping, please set interrupt_pin in touchscreen section");
+        // Clear CST3240 points buffer to avoid loops in Polling moode (without INT)
+        this->clear_reg16_(0xD000);
       }
       break;
     }
   }
-  //this->write_reg16_(0xD0AB);
   if (fingers)
     this->send_touches_();
 } // update_touches
