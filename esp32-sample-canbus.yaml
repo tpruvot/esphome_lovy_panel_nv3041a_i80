@@ -3,7 +3,7 @@ esphome:
   min_version: "2026.10.2"
   project:
     name: "tpruvot.nv3041a_i80"
-    version: 0.2.0
+    version: 0.3.0
   on_boot:
     priority: -100
     then:
@@ -76,6 +76,7 @@ captive_portal:
 #   version: 2
 
 api:
+  # reboot_timeout: 300s
   encryption:
     key: !secret esphome_api_key
 
@@ -106,6 +107,7 @@ modbus:
   - id: modbus0
     uart_id: uart485
     flow_control_pin: GPIO46 # 485_DE / RTS
+
 
 # Display backlight as Gradient Light
 

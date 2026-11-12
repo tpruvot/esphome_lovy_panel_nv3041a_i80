@@ -48,8 +48,8 @@ void CST3240Touchscreen::setup() {
     // wrote for ver. 1.0.1
     ESP_LOGI(TAG, "FW ver. %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
   }
-  if (this->read_reg16_(0xD1F8, buf, sizeof(buf))) {
-    // may be set by esphome display
+  // Resolution may be set by ESPHome display, only fill if empty
+  if ((this->x_raw_max_ == 0) && this->read_reg16_(0xD1F8, buf, sizeof(buf))) {
     this->x_raw_max_ = buf[0] + (buf[1] << 8);
     this->y_raw_max_ = buf[2] + (buf[3] << 8);
   }
@@ -71,24 +71,24 @@ void CST3240Touchscreen::dump_config() {
 
 bool CST3240Touchscreen::write_reg16_(uint16_t reg) {
   uint8_t data[2] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF) };
-  return (this->write(&data[0], 2) == i2c::ERROR_OK);
+  return (this->write(data, 2) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::write_reg16_(uint16_t reg, uint8_t byte) {
   uint8_t data[3] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF), byte };
-  return (this->write(&data[0], 3) == i2c::ERROR_OK);
+  return (this->write(data, 3) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::clear_reg16_(uint16_t reg) {
   uint8_t data[(MAX_TOUCH_POINTS * 7)+2] = { 0 };
   data[0] = uint8_t(reg >> 8);
   data[1] = uint8_t(reg & 0xFF);
-  return (this->write(&data[0], (MAX_TOUCH_POINTS * 7)+2) == i2c::ERROR_OK);
+  return (this->write(data, sizeof(data)) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::read_reg16_(uint16_t reg, uint8_t *buffer, size_t len) {
   uint8_t data[2] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF) };
-  if (this->write(&data[0], 2) != i2c::ERROR_OK)
+  if (this->write(data, 2) != i2c::ERROR_OK)
     return false;
   return this->read(buffer, len) == i2c::ERROR_OK;
 }
@@ -145,8 +145,10 @@ void CST3240Touchscreen::update_touches() {
       this->is_touched_ = false;
       ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
       // Clear CST3240 points buffer to avoid loops in Polling mode (without INT)
-      if (this->interrupt_pin_ == nullptr)
+      if (this->interrupt_pin_ == nullptr) {
         this->clear_reg16_(0xD000);
+        break;
+      }
     }
   }
   if (fingers)
