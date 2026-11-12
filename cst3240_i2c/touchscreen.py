@@ -1,22 +1,25 @@
-import esphome.codegen as cg
-import esphome.config_validation as cv
 from esphome import pins
-from esphome.components import touchscreen, i2c
-from esphome.const import CONF_ID, CONF_RESET_PIN, CONF_INTERRUPT_PIN, CONF_INVERTED
+import esphome.codegen as cg
+from esphome.components import i2c, touchscreen
+import esphome.config_validation as cv
+from esphome.const import CONF_ID, CONF_INTERRUPT_PIN, CONF_INVERTED, CONF_RESET_PIN
+
 from . import cst3240_i2c_ns
 
 I2C_ADDRESS = 0x5A
 
-cst3240_i2c_ns = cg.esphome_ns.namespace("cst3240_i2c")
 CST3240Touchscreen = cst3240_i2c_ns.class_(
     "CST3240Touchscreen", touchscreen.Touchscreen, i2c.I2CDevice
 )
 
-CONFIG_SCHEMA = touchscreen.TOUCHSCREEN_SCHEMA.extend({
-    cv.GenerateID(): cv.declare_id(CST3240Touchscreen),
-    cv.Optional(CONF_INTERRUPT_PIN): pins.internal_gpio_input_pullup_pin_schema,
-    cv.Optional(CONF_RESET_PIN): pins.internal_gpio_output_pin_schema,
-}).extend(i2c.i2c_device_schema(I2C_ADDRESS))
+CONFIG_SCHEMA = touchscreen.TOUCHSCREEN_SCHEMA.extend(
+    {
+        cv.GenerateID(): cv.declare_id(CST3240Touchscreen),
+        cv.Optional(CONF_INTERRUPT_PIN): pins.internal_gpio_input_pullup_pin_schema,
+        cv.Optional(CONF_RESET_PIN): pins.internal_gpio_output_pin_schema,
+    }
+).extend(i2c.i2c_device_schema(I2C_ADDRESS))
+
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])

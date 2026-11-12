@@ -1,4 +1,4 @@
-import esphome.codegen as cg;
+import esphome.codegen as cg
 
 CODEOWNERS = ["@tpruvot"]
 DEPENDENCIES = ["i2c"]

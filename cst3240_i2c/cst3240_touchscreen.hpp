@@ -24,7 +24,7 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
   touchscreen::TouchPoint last_tp{};
 
  protected:
-  void reset_(); // at setup time
+  void reset_();  // at setup time
   bool check_init_();
 
   void update_touches() override;
@@ -48,4 +48,3 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
 
 }  // namespace cst3240_i2c
 }  // namespace esphome
-

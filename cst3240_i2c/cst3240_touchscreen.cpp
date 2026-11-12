@@ -32,7 +32,8 @@ void CST3240Touchscreen::setup() {
     return;
 
   // Grab some infos from chip...
-  if (!this->write_reg16_(0xD101)) return;
+  if (!this->write_reg16_(0xD101))
+    return;
   uint8_t buf[4] = {0};
   if (this->read_reg16_(0xD204, buf, sizeof(buf))) {
     this->chip_id_ = buf[2] + (buf[3] << 8);
@@ -54,7 +55,7 @@ void CST3240Touchscreen::setup() {
     this->y_raw_max_ = buf[2] + (buf[3] << 8);
   }
   ESP_LOGD(TAG, "Resolution %d/%d", this->x_raw_max_, this->y_raw_max_);
-  this->write_reg16_(0xD109); // exit 0xD101 debug mode
+  this->write_reg16_(0xD109);  // exit 0xD101 debug mode
 }
 
 void CST3240Touchscreen::dump_config() {
@@ -70,31 +71,32 @@ void CST3240Touchscreen::dump_config() {
 }
 
 bool CST3240Touchscreen::write_reg16_(uint16_t reg) {
-  uint8_t data[2] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF) };
+  uint8_t data[2] = {uint8_t(reg >> 8), uint8_t(reg & 0xFF)};
   return (this->write(data, 2) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::write_reg16_(uint16_t reg, uint8_t byte) {
-  uint8_t data[3] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF), byte };
+  uint8_t data[3] = {uint8_t(reg >> 8), uint8_t(reg & 0xFF), byte};
   return (this->write(data, 3) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::clear_reg16_(uint16_t reg) {
-  uint8_t data[(MAX_TOUCH_POINTS * 7)+2] = { 0 };
+  uint8_t data[(MAX_TOUCH_POINTS * 7) + 2] = {0};
   data[0] = uint8_t(reg >> 8);
   data[1] = uint8_t(reg & 0xFF);
   return (this->write(data, sizeof(data)) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::read_reg16_(uint16_t reg, uint8_t *buffer, size_t len) {
-  uint8_t data[2] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF) };
+  uint8_t data[2] = {uint8_t(reg >> 8), uint8_t(reg & 0xFF)};
   if (this->write(data, 2) != i2c::ERROR_OK)
     return false;
   return this->read(buffer, len) == i2c::ERROR_OK;
 }
 
 bool CST3240Touchscreen::check_init_() {
-  if (this->inited_) return true;
+  if (this->inited_)
+    return true;
   this->inited_ = this->write_reg16_(0xD109);
   this->is_touched_ = false;
   return this->inited_;
@@ -128,7 +130,8 @@ void CST3240Touchscreen::update_touches() {
     uint8_t offset = i * 7;
     touchscreen::TouchPoint tp;
     tp.id = data[offset + 5] & 0x0F;
-    if (tp.id > MAX_TOUCH_POINTS || tp.id == 0) break;
+    if (tp.id > MAX_TOUCH_POINTS || tp.id == 0)
+      break;
 
     tp.x_raw = (data[offset + 1] << 4) | ((data[offset + 3] >> 4) & 0x0F);
     tp.y_raw = (data[offset + 2] << 4) | (data[offset + 3] & 0x0F);
@@ -153,7 +156,7 @@ void CST3240Touchscreen::update_touches() {
   }
   if (fingers)
     this->send_touches_();
-} // update_touches
+}  // update_touches
 
-} // namespace cst3240_i2c
-} // namespace esphome
+}  // namespace cst3240_i2c
+}  // namespace esphome
