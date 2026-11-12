@@ -5,8 +5,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 
-namespace esphome {
-namespace cst3240_i2c {
+namespace esphome::cst3240 {
 
 // Each finger data will charge the I2C bus, more without interrupt_pin set
 // Note the polling mode (without int) will also prevent the automatic chip standby
@@ -46,5 +45,4 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
   InternalGPIOPin *reset_pin_{nullptr};
 };
 
-}  // namespace cst3240_i2c
-}  // namespace esphome
+}  // namespace esphome::cst3240

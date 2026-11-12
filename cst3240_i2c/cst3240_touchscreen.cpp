@@ -1,10 +1,9 @@
 #include "cst3240_touchscreen.hpp"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace cst3240_i2c {
+namespace esphome::cst3240 {
 
-static const char *const TAG = "CST3240";
+ESPHOME_LOG_TAG(TAG, "CST3240");
 
 void CST3240Touchscreen::reset_() {
   if (this->reset_pin_ != nullptr) {
@@ -38,8 +37,9 @@ void CST3240Touchscreen::setup() {
   if (this->read_reg16_(0xD204, buf, sizeof(buf))) {
     this->chip_id_ = buf[2] + (buf[3] << 8);
     this->project_id_ = buf[0] + (buf[1] << 8);
-    if (this->chip_id_ != 0x3240)
+    if (this->chip_id_ != 0x3240) {
       ESP_LOGW(TAG, "Wrong Chip ID %X!", this->chip_id_);
+    }
     ESP_LOGD(TAG, "Chip ID %X, Project ID %X", this->chip_id_, this->project_id_);
   }
   if (this->read_reg16_(0xD208, buf, sizeof(buf))) {
@@ -158,5 +158,4 @@ void CST3240Touchscreen::update_touches() {
     this->send_touches_();
 }  // update_touches
 
-}  // namespace cst3240_i2c
-}  // namespace esphome
+}  // namespace esphome::cst3240
