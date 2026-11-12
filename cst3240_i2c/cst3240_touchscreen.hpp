@@ -15,7 +15,6 @@ static constexpr uint8_t MAX_TOUCH_POINTS = 3;
 
 class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevice {
  public:
-  void reset();
   void setup() override;
   void dump_config() override;
 
@@ -25,13 +24,15 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
   touchscreen::TouchPoint last_tp{};
 
  protected:
+  void reset_(); // at setup time
+  bool check_init_();
+
   void update_touches() override;
 
-  bool check_init_();
-  bool clear_reg16_(uint16_t reg);
   bool write_reg16_(uint16_t reg);
   bool write_reg16_(uint16_t reg, uint8_t byte);
-  bool read_reg16_(uint16_t reg, uint8_t *data, size_t length);
+  bool clear_reg16_(uint16_t reg);
+  bool read_reg16_(uint16_t reg, uint8_t *buffer, size_t len);
 
   bool inited_{false};
 

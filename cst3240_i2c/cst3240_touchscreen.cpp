@@ -6,7 +6,7 @@ namespace cst3240_i2c {
 
 static const char *const TAG = "CST3240";
 
-void CST3240Touchscreen::reset() {
+void CST3240Touchscreen::reset_() {
   if (this->reset_pin_ != nullptr) {
     this->inited_ = false;
     this->reset_pin_->digital_write(false);
@@ -21,7 +21,7 @@ void CST3240Touchscreen::setup() {
   // optional, our display shares it
   if (this->reset_pin_ != nullptr) {
     this->reset_pin_->setup();
-    this->reset();
+    this->reset_();
   }
   if (this->interrupt_pin_ != nullptr) {
     this->interrupt_pin_->setup();
@@ -64,37 +64,33 @@ void CST3240Touchscreen::dump_config() {
     LOG_PIN("  TP_RST: ", this->reset_pin_);
   if (this->interrupt_pin_ != nullptr)
     LOG_PIN("  TP_INT: ", this->interrupt_pin_);
-  ESP_LOGCONFIG(TAG, "  Chip ID: 0x%04X, Project ID: 0x%04X", this->chip_id_, this->project_id_);
+  ESP_LOGCONFIG(TAG, "  Chip ID: %04X, Project ID: %04X", this->chip_id_, this->project_id_);
   ESP_LOGCONFIG(TAG, "  FW version: %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
   ESP_LOGCONFIG(TAG, "  X/Y resolution: %d/%d", this->x_raw_max_, this->y_raw_max_);
 }
 
 bool CST3240Touchscreen::write_reg16_(uint16_t reg) {
-  uint16_t sw = (reg << 8) | (reg >> 8); // Swap endianness requis par le CST3240
-  return this->write(reinterpret_cast<uint8_t *>(&sw), 2) == i2c::ERROR_OK;
+  uint8_t data[2] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF) };
+  return (this->write(&data[0], 2) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::write_reg16_(uint16_t reg, uint8_t byte) {
-  uint8_t data[3];
-  data[0] = reg >> 8;
-  data[1] = reg & 0xFF;
-  data[2] = byte;
-  return this->write(&data[0], 3) == i2c::ERROR_OK;
-}
-
-bool CST3240Touchscreen::read_reg16_(uint16_t reg, uint8_t *data, size_t length) {
-  uint16_t sw = (reg << 8) | (reg >> 8);
-  if (this->write(reinterpret_cast<uint8_t *>(&sw), 2) != i2c::ERROR_OK) {
-    return false;
-  }
-  return this->read(data, length) == i2c::ERROR_OK;
+  uint8_t data[3] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF), byte };
+  return (this->write(&data[0], 3) == i2c::ERROR_OK);
 }
 
 bool CST3240Touchscreen::clear_reg16_(uint16_t reg) {
   uint8_t data[(MAX_TOUCH_POINTS * 7)+2] = { 0 };
-  data[0] = reg >> 8;
-  data[1] = reg & 0xFF;
+  data[0] = uint8_t(reg >> 8);
+  data[1] = uint8_t(reg & 0xFF);
   return (this->write(&data[0], (MAX_TOUCH_POINTS * 7)+2) == i2c::ERROR_OK);
+}
+
+bool CST3240Touchscreen::read_reg16_(uint16_t reg, uint8_t *buffer, size_t len) {
+  uint8_t data[2] = { uint8_t(reg >> 8), uint8_t(reg & 0xFF) };
+  if (this->write(&data[0], 2) != i2c::ERROR_OK)
+    return false;
+  return this->read(buffer, len) == i2c::ERROR_OK;
 }
 
 bool CST3240Touchscreen::check_init_() {
@@ -123,7 +119,8 @@ void CST3240Touchscreen::update_touches() {
     ESP_LOGW(TAG, "I2C read error");
     return;
   }
-  this->write_reg16_(0xD000, 0xAB); // done in i2c this->read ?
+  // this write could be skipped, but keep it (standby related?)
+  this->write_reg16_(0xD000, 0xAB);
 
   uint8_t fingers = 0;
 
@@ -144,16 +141,12 @@ void CST3240Touchscreen::update_touches() {
       fingers++;
       ESP_LOGD(TAG, "%d: event at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
     } else {
-      // touchscreen may loop here after click without interrupt pin linked
-      if (tp.z_raw != last_tp.z_raw || tp.x_raw != last_tp.x_raw) {
-        last_tp = tp;
-        this->is_touched_ = false;
-        ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
-      } else {
-        // Clear CST3240 points buffer to avoid loops in Polling moode (without INT)
+      last_tp = tp;
+      this->is_touched_ = false;
+      ESP_LOGD(TAG, "%d: click at %d/%d z=%d", tp.id, tp.x_raw, tp.y_raw, tp.z_raw);
+      // Clear CST3240 points buffer to avoid loops in Polling mode (without INT)
+      if (this->interrupt_pin_ == nullptr)
         this->clear_reg16_(0xD000);
-      }
-      break;
     }
   }
   if (fingers)
