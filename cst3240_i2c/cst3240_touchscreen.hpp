@@ -5,7 +5,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 
-namespace esphome::cst3240 {
+namespace esphome::cst3240_i2c {
 
 // Each finger data will charge the I2C bus, more without interrupt_pin set
 // Note the polling mode (without int) will also prevent the automatic chip standby
@@ -20,8 +20,6 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
   void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin_ = pin; }
   void set_reset_pin(InternalGPIOPin *pin) { this->reset_pin_ = pin; }
 
-  touchscreen::TouchPoint last_tp{};
-
  protected:
   void reset_();  // at setup time
   bool check_init_();
@@ -34,6 +32,7 @@ class CST3240Touchscreen : public touchscreen::Touchscreen, public i2c::I2CDevic
   bool read_reg16_(uint16_t reg, uint8_t *buffer, size_t len);
 
   bool inited_{false};
+  bool polling_{true};
 
   uint16_t chip_id_{};
   uint16_t project_id_{};
