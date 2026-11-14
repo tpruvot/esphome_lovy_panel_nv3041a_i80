@@ -58,12 +58,14 @@ void CST3240Touchscreen::continue_setup_() {
     this->fw_ver_minor_ = buf[2];
     this->fw_build_ = buf[0] + (buf[1] << 8);
     // wrote for ver. 1.0.1
-    ESP_LOGI(TAG, "FW ver. %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
+    ESP_LOGD(TAG, "FW ver. %d.%d.%d", this->fw_ver_major_, this->fw_ver_minor_, this->fw_build_);
   }
   // Resolution may be set by ESPHome display, only fill if empty
   if ((this->x_raw_max_ == 0) && this->read_reg16_(0xD1F8, buf, sizeof(buf))) {
     this->x_raw_max_ = buf[0] + (buf[1] << 8);
     this->y_raw_max_ = buf[2] + (buf[3] << 8);
+    if (this->swap_x_y_)
+      std::swap(this->x_raw_max_, this->y_raw_max_);
   }
   ESP_LOGD(TAG, "Resolution %d/%d", this->x_raw_max_, this->y_raw_max_);
   this->write_reg16_(0xD109);  // exit 0xD101 debug mode
