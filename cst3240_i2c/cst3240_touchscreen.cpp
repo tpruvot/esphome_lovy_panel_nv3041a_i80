@@ -2,6 +2,12 @@
 
 #include "esphome/core/log.h"
 
+#if ESPHOME_VERSION_CODE < VERSION_CODE(2026, 11, 0)
+#define setup_check(x, err) (x)
+#else
+#define setup_check(x, err) this->setup_check(x, err)
+#endif
+
 namespace esphome::cst3240_i2c {
 
 ESPHOME_LOG_TAG(TAG, "CST3240");
@@ -33,12 +39,11 @@ void CST3240Touchscreen::continue_setup_() {
     this->stop_poller();
     this->polling_ = false;
   }
-  if (!this->check_init_())
+  // Ensure we can enter info mode
+  if (!setup_check(this->check_init_() && this->write_reg16_(0xD101),
+    LOG_STR("No device found"))) {
     return;
-
-  // Grab some infos from chip...
-  if (!this->write_reg16_(0xD101))
-    return;
+  }
   uint8_t buf[4] = {0};
   if (this->read_reg16_(0xD204, buf, sizeof(buf))) {
     this->chip_id_ = buf[2] + (buf[3] << 8);
