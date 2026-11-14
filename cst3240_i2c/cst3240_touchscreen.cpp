@@ -29,7 +29,7 @@ void CST3240Touchscreen::setup() {
 void CST3240Touchscreen::continue_setup_() {
   if (this->interrupt_pin_ != nullptr) {
     this->interrupt_pin_->setup();
-    this->attach_interrupt_(this->interrupt_pin_, gpio::INTERRUPT_FALLING_EDGE);
+    this->attach_interrupt_(this->interrupt_pin_, gpio::INTERRUPT_RISING_EDGE);
     this->stop_poller();
     this->polling_ = false;
   }
