@@ -138,8 +138,6 @@ void CST3240Touchscreen::update_touches() {
   for (uint8_t i = 0; i < fingers; i++) {
     touchscreen::TouchPoint tp;
     tp.id = ((data[offset]) >> 4) + 1;
-    if (tp.id > fingers)
-      break;
 
     tp.x_raw = (data[offset + 1] << 4) | (data[offset + 3] >> 4);
     tp.y_raw = (data[offset + 2] << 4) | (data[offset + 3] & 0x0F);
